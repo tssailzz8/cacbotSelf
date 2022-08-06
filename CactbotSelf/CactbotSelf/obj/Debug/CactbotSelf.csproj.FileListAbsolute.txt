@@ -1,0 +1,37 @@
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\CactbotSelf.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\CactbotSelf.pdb
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\Advanced Combat Tracker.exe
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\FFXIV_ACT_Plugin.Common.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\FFXIV_ACT_Plugin.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\Newtonsoft.Json.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\OverlayPlugin.Common.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\OverlayPlugin.Core.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\GammaJul.LgLcd.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\ICSharpCode.SharpZipLib.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\Trinet.Core.IO.Ntfs.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\HtmlRenderer.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\Fleck.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\OverlayPlugin.Updater.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\SharpCompress.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\Markdig.Signed.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\Advanced Combat Tracker.exe.config
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\de-DE\OverlayPlugin.Core.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\fr-FR\OverlayPlugin.Core.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\ja-JP\OverlayPlugin.Core.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\ko-KR\OverlayPlugin.Core.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\zh-CN\OverlayPlugin.Core.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\de-DE\HtmlRenderer.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\fr-FR\HtmlRenderer.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\ja-JP\HtmlRenderer.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\ko-KR\HtmlRenderer.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\zh-CN\HtmlRenderer.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\de-DE\OverlayPlugin.Updater.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\fr-FR\OverlayPlugin.Updater.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\ja-JP\OverlayPlugin.Updater.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\ko-KR\OverlayPlugin.Updater.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\bin\Debug\zh-CN\OverlayPlugin.Updater.resources.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\obj\Debug\CactbotSelf.csproj.AssemblyReference.cache
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\obj\Debug\CactbotSelf.csproj.CoreCompileInputs.cache
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\obj\Debug\CactbotSelf.csproj.CopyComplete
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\obj\Debug\CactbotSelf.dll
+G:\c#\cacbotSelf\CactbotSelf\CactbotSelf\obj\Debug\CactbotSelf.pdb
