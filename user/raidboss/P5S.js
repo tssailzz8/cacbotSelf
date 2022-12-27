@@ -121,7 +121,6 @@ function nametocnjob(name, data) {
     return re;
 };
 
-let 左上; let 右上; let 右下; let 左下;
 
 function 获取坐标(data)
 {
@@ -167,7 +166,7 @@ function 获取坐标(data)
                 data.左下 = '3';
             if (_four == '左下')
                 data.左下 = '4';
-            左上 = data.左上; 右上 = data.右上; 右下 = data.右下; 左下 = data.左下;
+
         };
     };
 }
@@ -586,7 +585,6 @@ Options.Triggers.push({
             },
             infoText: (data, _matches, output) => {
                 const remainingDirections = {};
-                
                 获取坐标(data);
                 for (const [index, dirs] of Object.entries(data.topazRays)) {
                     const directions = ['NW', 'NE', 'SE', 'SW'];

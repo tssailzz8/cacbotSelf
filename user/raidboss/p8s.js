@@ -165,7 +165,7 @@ function nametocnjob(name, data) {
   // 没有同职业，播报职业
   return re;
 };
-const THGroup = ['战士', '枪刃', '黑骑', '骑士','白魔','占星','学者','贤者'];
+const THGroup = ['战士', '枪刃', '黑骑', '骑士', '白魔', '占星', '学者', '贤者'];
 const positionTo8Dir = (combatant) => {
   const x = combatant.PosX - 100;
   const y = combatant.PosY - 100;
@@ -207,7 +207,7 @@ const getOneMark = (i = 4) => {
   if (i == 8) {
     位置 = Math.round(4 - 4 * Math.atan2(aPos.X - 100, aPos.Z - 100) / Math.PI) % 8;
   }
-  console.log(位置);
+
   return 位置;
 };
 Options.Triggers.push({
@@ -560,7 +560,7 @@ Options.Triggers.push({
         data.蛇位置.push(bossData);
       },
       alertText: (data, matches, output) => {
-        if (data.蛇位置.length == 2&&!data.三连龙) {
+        if (data.蛇位置.length == 2 && !data.三连龙) {
           let 方位 = ['上', '右上', '右', '右下', '下', '左下', '左', '左上'];
           let 方位1 = Math.round(4 - 4 * Math.atan2(data.蛇位置[0].PosX - 100, data.蛇位置[0].PosY - 100) / Math.PI) % 8;
           let 方位2 = Math.round(4 - 4 * Math.atan2(data.蛇位置[1].PosX - 100, data.蛇位置[1].PosY - 100) / Math.PI) % 8;
@@ -575,7 +575,7 @@ Options.Triggers.push({
           else {
             bobao = 方位[位置[0] + 2];
           }
-          data.SnakePos=[方位[位置[0]],方位[位置[1]]];
+          data.SnakePos = [方位[位置[0]], 方位[位置[1]]];
           return 方位[方位1] + '/' + 方位[方位2] + '\n站在' + bobao;
         }
       },
@@ -613,13 +613,13 @@ Options.Triggers.push({
       type: 'GainsEffect',
       netRegex: NetRegexes.gainsEffect({ effectId: 'D17' }),
       condition: (data, matches) => matches.duration == "23.00",
-      delaySeconds:(data, matches) => parseFloat(matches.duration) - 8,
-      suppressSeconds:10,
+      delaySeconds: (data, matches) => parseFloat(matches.duration) - 8,
+      suppressSeconds: 10,
       alertText: (data, matches, output) => {
         if (data.扇形1.length == 2) {
-          let myJob=nametocnjob(data.me,data);
-          let 扇形1位置=data.扇形1.indexOf(myJob);
-          if (扇形1位置!==-1) return '去'+data.SnakePos[扇形1位置]+'喷射'
+          let myJob = nametocnjob(data.me, data);
+          let 扇形1位置 = data.扇形1.indexOf(myJob);
+          if (扇形1位置 !== -1) return '去' + data.SnakePos[扇形1位置] + '喷射'
         }
       }
     },
@@ -647,13 +647,13 @@ Options.Triggers.push({
       type: 'GainsEffect',
       netRegex: NetRegexes.gainsEffect({ effectId: 'D17' }),
       condition: (data, matches) => matches.duration == "31.00",
-      suppressSeconds:10,
-      delaySeconds:(data, matches) => parseFloat(matches.duration) - 8,
+      suppressSeconds: 10,
+      delaySeconds: (data, matches) => parseFloat(matches.duration) - 8,
       alertText: (data, matches, output) => {
         if (data.扇形2.length == 2) {
-          let myJob=nametocnjob(data.me,data);
-          let 扇形2位置=data.扇形2.indexOf(myJob);
-          if (扇形2位置!==-1) return '去'+data.SnakePos[扇形2位置]+'喷射'
+          let myJob = nametocnjob(data.me, data);
+          let 扇形2位置 = data.扇形2.indexOf(myJob);
+          if (扇形2位置 !== -1) return '去' + data.SnakePos[扇形2位置] + '喷射'
         }
       }
     },
@@ -681,13 +681,13 @@ Options.Triggers.push({
       type: 'GainsEffect',
       netRegex: NetRegexes.gainsEffect({ effectId: 'CFE' }),
       condition: (data, matches) => matches.duration == "26.00",
-      delaySeconds:(data, matches) => parseFloat(matches.duration) - 10,
-      suppressSeconds:10,
+      delaySeconds: (data, matches) => parseFloat(matches.duration) - 10,
+      suppressSeconds: 10,
       alertText: (data, matches, output) => {
         if (data.poison1.length == 2) {
-          let myJob=nametocnjob(data.me,data);
-          let poison1=data.poison1.indexOf(myJob);
-          if (poison1!==-1) return '去'+data.SnakePos[poison1]+'放毒'
+          let myJob = nametocnjob(data.me, data);
+          let poison1 = data.poison1.indexOf(myJob);
+          if (poison1 !== -1) return '去' + data.SnakePos[poison1] + '放毒'
         }
       }
     },
@@ -715,13 +715,13 @@ Options.Triggers.push({
       type: 'GainsEffect',
       netRegex: NetRegexes.gainsEffect({ effectId: 'CFE' }),
       condition: (data, matches) => matches.duration == "34.00",
-      delaySeconds:(data, matches) => parseFloat(matches.duration) - 10,
-      suppressSeconds:10,
+      delaySeconds: (data, matches) => parseFloat(matches.duration) - 10,
+      suppressSeconds: 10,
       alertText: (data, matches, output) => {
         if (data.poison1.length == 2) {
-          let myJob=nametocnjob(data.me,data);
-          let poison2=data.poison2.indexOf(myJob);
-          if (poison2!==-1) return '去'+data.SnakePos[poison2]+'放毒'
+          let myJob = nametocnjob(data.me, data);
+          let poison2 = data.poison2.indexOf(myJob);
+          if (poison2 !== -1) return '去' + data.SnakePos[poison2] + '放毒'
         }
       }
     },
@@ -873,7 +873,7 @@ Options.Triggers.push({
     {
       id: 'P8S Uplift Counter',
       type: 'Ability',
-      netRegex: NetRegexes.ability({ id: ['7935', '75F0'] }),
+      netRegex: NetRegexes.ability({ id: ['7935'] }),
       // Count in a separate trigger so that we can suppress it, but still call out for
       // both people hit.
       preRun: (data, _matches) => data.upliftCounter++,
@@ -949,7 +949,7 @@ Options.Triggers.push({
             continue;
           const theirNumber = data.firstSnakeOrder[name];
           if (myNumber === theirNumber) {
-            partner = nametocnjob(name,data);
+            partner = nametocnjob(name, data);
             break;
           }
         }
@@ -967,7 +967,7 @@ Options.Triggers.push({
     {
       id: 'P8S Uplift Number',
       type: 'Ability',
-      netRegex: NetRegexes.ability({ id: ['7935', '75F0'] }),
+      netRegex: NetRegexes.ability({ id: ['7935'] }),
       condition: Conditions.targetIsYou(),
       // ~12.8 seconds between #1 Uplift (7935) to #1 Stomp Dead (7937)
       // ~13.8 seconds between #4 Uplift (7935) to #4 Stomp Dead (7937).
@@ -1066,7 +1066,7 @@ Options.Triggers.push({
         const friends = [];
         for (const [name, theirDebuff] of Object.entries(data.secondSnakeDebuff)) {
           if (myDebuff === theirDebuff && name !== data.me)
-            friends.push(nametocnjob(name,data));
+            friends.push(nametocnjob(name, data));
         }
         const gazeAlert = isGazeFirst ? output.firstGaze() : output.secondGaze();
         if (myDebuff === 'nothing') {
@@ -1129,13 +1129,13 @@ Options.Triggers.push({
           }
           return "斜点蛇"
         }
-        else{
+        else {
           if (data.snakePos.combatants[0].PosX == 100 || data.snakePos.combatants[0].PosY == 100) {
             return "正点蛇看斜点"
           }
           return "斜点蛇看正点"
         }
-        
+
       },
     },
     // 蛇2分身
@@ -1183,14 +1183,14 @@ Options.Triggers.push({
       netRegex: NetRegexes.startsUsing({ id: '7932' }),
       alertText: (data, matches, output) => {
         if (data.分身 == 2) {
-          let myJob=nametocnjob(data.me,data);
+          let myJob = nametocnjob(data.me, data);
           //TH分组是分摊
           // if (data.分摊.find((x)=>THGroup.some((item) => x === item))) {
-            
+
           //   }
-            if (myJob==data.分摊[1]||myJob==data.背对[0]) 
-              return '去换位'
-            else return data.分摊[1]+'和'+data.背对[0]+'换位'
+          if (myJob == data.分摊[1] || myJob == data.背对[0])
+            return '去换位'
+          else return data.分摊[1] + '和' + data.背对[0] + '换位'
 
         }
       },
@@ -1413,7 +1413,7 @@ Options.Triggers.push({
           if (getOneMark(8) == 1) {
             bobao = ['4', '1', '2', '3'];
           }
-         
+
           data.龙.forEach(i => {
 
             let 方位1 = Math.round(4 - 4 * Math.atan2(i.PosX - 100, i.PosY - 100) / Math.PI) % 8;
@@ -1480,7 +1480,7 @@ Options.Triggers.push({
           });
           delete data.龙1;
           bobao = bobao.filter(s => s && s.trim());
-          return bobao[0]+'点' + bobao[1]+'点';
+          return bobao[0] + '点' + bobao[1] + '点';
         }
       },
     },
@@ -1775,8 +1775,9 @@ Options.Triggers.push({
     {
       id: 'P8S 标点记录',
       type: 'StartsUsing',
-      suppressSeconds: 99,
-      netRegex: NetRegexes.startsUsing({ id: '79DC' }),
+      suppressSeconds: 9999,
+      delaySeconds: 2,
+      netRegex: NetRegexes.startsUsing({ id: '79DF' }),
       run: () => {
         originalMark = camera;
       },
@@ -1786,11 +1787,143 @@ Options.Triggers.push({
       type: 'StartsUsing',
       suppressSeconds: 99999,
       netRegex: NetRegexes.startsUsing({ id: '79DF' }),
+      
       run: () => {
 
         if (originalMark != undefined && originalMark.A.X != 0) {
           callOverlayHandler({ call: 'PostNamazu', c: 'place', p: JSON.stringify(originalMark) });
         }
+      },
+    },
+    {
+      id: 'P8S Tyrant\'s Fire III Counter',
+      type: 'Ability',
+      netRegex: { id: '75F0' },
+      preRun: (data) => data.burstCounter++,
+      durationSeconds: 2,
+      suppressSeconds: 1,
+      sound: '',
+      infoText: (data, _matches, output) => output.text({ num: data.burstCounter }),
+      tts: null,
+      outputStrings: {
+        text: {
+          en: '${num}',
+          de: '${num}',
+          fr: '${num}',
+          ja: '${num}番',
+          cn: '${num}',
+          ko: '${num}',
+        },
+      },
+    },
+    {
+      id: 'p8S塔id',
+      type: 'MapEffect',
+      netRegex: /] ChatLog 00:0:103:.{8}:800375AB:00020001:.{6}(?<location>.+?):/,
+      alertText: (data, matches) => {
+        let towerPos = parseInt(matches.location, 16)
+        if (data.towerPos === undefined) data.towerPos = [];
+        if (data.myTower) {
+          
+        data.towerPos.push(towerPos);
+        }
+        
+        let bobao;
+
+        if (data.myTower && data.towerPos.length == 4) {
+          delete data.myTower;
+          let myPosX = data.myCombant.combatants[0].PosX;
+          data.towerPos.forEach(i => {
+            if (myPosX < 100) {
+              switch (i) {
+                case 76:
+                  bobao = '左边第一排第一个'
+                  break;
+                case 77:
+                  bobao = '左边第一排第二个'
+                  break;
+                case 80:
+                  bobao = '左边第二排第一个'
+                  break;
+                case 82:
+                  bobao = '左边第三排第二个'
+                  break;
+                case 11:
+                  bobao = '左边第三排第二个'
+                  break;
+                default:
+                  break;
+              }
+            }
+            else {
+              switch (i) {
+                case 78:
+                  bobao = '右边第一排第二个'
+                  break;
+                case 79:
+                  bobao = '右边第一排第一个'
+                  break;
+                case 81:
+                  bobao = '右边第二排第一个'
+                  break;
+                case 83:
+                  bobao = '右边第三排第一个'
+                case 12:
+                  bobao = '右边第三排第二个'
+                  break;
+                case 10:
+                  bobao = '右边第二排第二个'
+                  break;
+                default:
+                  break;
+              }
+              let 第几列 = Math.floor(i / 4) + 1;
+              let 第几排 = i % 4 + 1;
+              console.log(i);
+              console.log(data.towerPos);
+              // if (Math.floor(i / 2)%2==0&&myPosX<100) {
+              //   bobao= '塔'+'第'+第几排+'排'+第几列+'个'
+              //   return '左边塔'+''+第几排+''+第几列
+              // }
+              // if (Math.floor(i / 2)%2!==0&&myPosX>100) {
+              //   bobao= '塔'+'第'+第几排+'排'+第几列+'个'
+              //   return '右边塔'+''+第几排+''+第几列
+              // }
+            }
+          });
+          return bobao
+        }
+        if (data.towerPos.length >= 4) {
+          delete data.towerPos;
+        }
+
+      },
+    },
+    {
+      id: 'P8S Tyrant\'s Fire III Bait then Tower',
+      type: 'Ability',
+      netRegex: { id: '75F0' },
+      condition: Conditions.targetIsYou(),
+      durationSeconds: 7.9,
+      alertText: (data, _matches, output) => output.text({ num: data.burstCounter }),
+      promise: async (data, matches) => {
+        data.myCombant = await callOverlayHandler({
+          call: 'getCombatants',
+          ids: [parseInt(matches.targetId, 16)],
+        });
+
+
+      },
+      run: (data) => data.myTower = data.burstCounter,
+      outputStrings: {
+        text: {
+          en: '${num}',
+          de: '${num}',
+          fr: '${num}',
+          ja: '自分: ${num}番',
+          ko: '${num}',
+          cn: '${num}',
+        },
       },
     },
     {
@@ -2383,7 +2516,10 @@ Options.Triggers.push({
       suppressSeconds: 15,
       delaySeconds: 10,
       run: (data, matches, output) => {
-        delete data.tower;
+        if (data.tower) {
+          delete data.tower;
+        }
+        
       },
 
     },
@@ -2456,10 +2592,15 @@ Options.Triggers.push({
 
         }
         if (data.partJob === undefined) data.partJob = [];
-        for (let i = 0; i < 8; i++) {
-          let job = nametocnjob(data.party.idToName_[data.party.partyIds_[i]], data);
-          data.partJob.push(job);
-        };
+        if (data.partJob.length<8)
+        {
+          for (let i = 0; i < 8; i++) {
+          
+            let job = nametocnjob(data.party.idToName_[data.party.partyIds_[i]], data);
+            data.partJob.push(job);
+          };
+        }
+        
 
         let 第一轮塔 = data.partJob.filter((i) => !第二轮塔.some((j) => j === i));
         第二轮塔.sort((a, b) => {

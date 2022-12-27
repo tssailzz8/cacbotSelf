@@ -206,7 +206,8 @@ Options.Triggers.push({
       鸳鸯锅: 0,
       tileTethers: [],
       mapEffects: [],
-      polyInstance:0
+      polyInstance:0,
+      darkSpheres: [],
     };
   },
   triggers: [
@@ -369,8 +370,19 @@ Options.Triggers.push({
       type: 'MapEffect',
       netRegex: /] ChatLog 00:0:103:.{8}:800375A9:(?<flags>.+?):.{6}(?<location>.+?):/,
       run: (data, matches) => {
-        if (matches.location !== '00')
-        data.mapEffects.push(matches);
+        if (matches.flags==crossTileFlags||matches.flags==diagonalTileFlags) {
+          if (matches.location !== '00')
+          data.mapEffects.push(matches);
+        }
+       
+      },
+    },
+    {
+      id: 'P6S Polyominoid MapEffect Collect',
+      type: 'MapEffect',
+      netRegex: { flags: [crossTileFlags, diagonalTileFlags] },
+      run: (data, matches) => {
+
       },
     },
     {
@@ -386,10 +398,11 @@ Options.Triggers.push({
         if (data.tileTethers.length !== 0) {
           for (const tether of data.tileTethers)
             ids.push(parseInt(tether.sourceId, 16), parseInt(tether.targetId, 16));
-          data.combatantData = (await callOverlayHandler({
+          let combatantData = (await callOverlayHandler({
             call: 'getCombatants',
             ids: ids,
-          })).combatants;
+          }));
+          data.combatantData=combatantData.combatants;
         }
       },
       infoText: (data, _matches, output) => {
@@ -400,7 +413,7 @@ Options.Triggers.push({
           console.log(data.polyInstance+'次没找到交换');
           return;
         }
-          
+       
         if (data.mapEffects.length < 2)
           return;
         if (data.polyInstance === 4) // lots of safe spots, doesn't need a trigger response
@@ -473,19 +486,23 @@ Options.Triggers.push({
         for (const effect of data.mapEffects) {
           if (mapLookup[effect.location] === undefined)
             return;
-
           const startTile = mapLookup[effect.location];
           const isTethered = tetheredTiles.includes(startTile);
-
           if (unsafeMap[startTile] !== undefined)
             delete safe[unsafeMap[startTile][1]]; // delete tile where effect appears, as it will always be unsafe
-          if ((effect.flags === crossTileFlags && !isTethered) || (effect.flags === diagonalTileFlags && isTethered)) {
+          if (
+            effect.flags === crossTileFlags && !isTethered ||
+            effect.flags === diagonalTileFlags && isTethered
+          ) {
             relCrossTiles.forEach((tileMod) => {
               const deleteTile = startTile + tileMod;
               if (unsafeMap[deleteTile] !== undefined)
                 delete safe[unsafeMap[deleteTile][1]];
             });
-          } else if ((effect.flags === diagonalTileFlags && !isTethered) || (effect.flags === crossTileFlags && isTethered)) {
+          } else if (
+            effect.flags === diagonalTileFlags && !isTethered ||
+            effect.flags === crossTileFlags && isTethered
+          ) {
             relDiagonalTiles.forEach((tileMod) => {
               const deleteTile = startTile + tileMod;
               if (unsafeMap[deleteTile] !== undefined)
@@ -700,10 +717,46 @@ Options.Triggers.push({
       response: Responses.goFrontBack(),
     },
     {
+      id: 'P6S Choros Ixou Front Back',
+      type: 'StartsUsing',
+      netRegex: { id: '7883',  },
+      alertText: (data, _matches, output) => {
+        if (data.polyInstance === 5 && data.poly5FrontBackTile !== undefined)
+          return output.goFrontBackPoly5({ tile: data.poly5FrontBackTile });
+        return output.goFrontBack();
+      },
+      outputStrings: {
+        goFrontBack: Outputs.goFrontBack,
+        goFrontBackPoly5: {
+          en: 'Go Front/Back (${tile})',
+          de: 'Gehe nach Vorne/Hinten (${tile})',
+          fr: 'Allez Devant/Derrière (${tile})',
+          ja: '縦へ (${tile})',
+          cn: '去前面/后面 (${tile})',
+          ko: '앞/뒤로 (${tile})',
+        },
+      },
+    },
+    {
       id: 'P6S Choros Ixou Sides',
       type: 'StartsUsing',
-      netRegex: NetRegexes.startsUsing({ id: '7881' }),
-      response: Responses.goSides(),
+      netRegex: { id: '7881'},
+      alertText: (data, _matches, output) => {
+        if (data.polyInstance === 5 && data.poly5SideTile !== undefined)
+          return output.goSidesPoly5({ tile: data.poly5SideTile });
+        return output.goSides();
+      },
+      outputStrings: {
+        goSides: Outputs.sides,
+        goSidesPoly5: {
+          en: 'Sides (${tile})',
+          de: 'Seiten (${tile})',
+          fr: 'Côté (${tile})',
+          ja: '横へ (${tile})',
+          cn: '两侧 (${tile})',
+          ko: '옆으로 (${tile})',
+        },
+      },
     },
     {
       id: 'P6S Polyominoid Healer Groups',
@@ -1011,7 +1064,7 @@ Options.Triggers.push({
       suppressSeconds: 45,
       condition: (data, matches, output) => Conditions.targetIsYou() && data.鸳鸯锅 == 2,
       infoText: (data, matches, output) => {
-        let bobao=data.predationDebuff === 'CF7' ? '去右边' : '去左边';
+        let bobao=data.predationDebuff === 'CF7' ? '去左边' : '去右边';
         return bobao
       }
     },
@@ -1021,6 +1074,50 @@ Options.Triggers.push({
       netRegex: NetRegexes.startsUsing({ id: '63D0' }),
       disabled: true,
       response: Responses.lookAway('alert'),
+    },
+    {
+      id: 'P6S Dark Spheres Collect',
+      type: 'StartsUsing',
+      netRegex: { id: '7880' },
+      run: (data, matches) => data.darkSpheres.push(matches),
+    },
+    {
+      id: 'P6S Cachexia 2 Dark Spheres',
+      type: 'StartsUsing',
+      netRegex: { id: '7880' },
+      delaySeconds: 0.5,
+      suppressSeconds: 1,
+      alertText: (data, _matches, output) => {
+        for (const darkSphere of data.darkSpheres) {
+          if (data.me === darkSphere.target)
+            return data.poly6SafeSide === undefined
+              ? output.spread()
+              : output.spreadSide({ dir1: data.poly6SafeSide });
+          return data.poly6SafeSide === undefined
+            ? output.stack()
+            : output.stackSide({ dir1: data.poly6SafeSide });
+        }
+      },
+      outputStrings: {
+        spread: Outputs.spread,
+        stack: Outputs.stackMarker,
+        spreadSide: {
+          en: 'Spread ${dir1}',
+          de: 'Verteilen ${dir1}',
+          fr: 'Dispersion ${dir1}',
+          ja: '散会 ${dir1}',
+          cn: '散开 ${dir1}',
+          ko: '산개 ${dir1}',
+        },
+        stackSide: {
+          en: 'Stack ${dir1}',
+          de: 'Sammeln ${dir1}',
+          fr: 'Package ${dir1}',
+          ja: '頭割り ${dir1}',
+          cn: '分摊 ${dir1}',
+          ko: '쉐어 ${dir1}',
+        },
+      },
     },
   ],
 
