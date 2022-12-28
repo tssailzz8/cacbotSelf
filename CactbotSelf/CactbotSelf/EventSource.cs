@@ -184,6 +184,10 @@ namespace CactbotSelf
 			fast_update_timer_.Stop();
 
 		}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7b16183cb556696526ae605f49d673c724fd2e30
 		public override void Start()
 		{
 			fast_update_timer_ = new System.Timers.Timer();
@@ -208,9 +212,16 @@ namespace CactbotSelf
 		}
 		protected override void Update()
 		{
+<<<<<<< HEAD
 			
 		}
 		Waymark ReadWaymark(IntPtr addr, WaymarkID id) => new Waymark
+=======
+
+		}
+
+		 Waymark ReadWaymark(IntPtr addr, WaymarkID id) => new Waymark
+>>>>>>> 7b16183cb556696526ae605f49d673c724fd2e30
 		{
 			X = ReadFloat(addr),
 			Y = ReadFloat(addr + 0x4),
