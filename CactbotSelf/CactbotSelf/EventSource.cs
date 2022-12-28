@@ -140,10 +140,11 @@ namespace CactbotSelf
 
 		}
 
-		protected override void Update()
+		public override void Start()
 		{
 			fast_update_timer_ = new System.Timers.Timer();
-			fast_update_timer_.Elapsed += (o, args) => {
+			fast_update_timer_.Elapsed += (o, args) =>
+			{
 				int timer_interval = kSlowTimerMilli;
 				try
 				{
@@ -157,8 +158,13 @@ namespace CactbotSelf
 			};
 			fast_update_timer_.AutoReset = false;
 			OnPlayerControl += (e) => DispatchToJS(e);
+			GetConfig += (e) => DispatchToJS(e);
 			fast_update_timer_.Interval = kFastTimerMilli;
 			fast_update_timer_.Start();
+		}
+		protected override void Update()
+		{
+
 		}
 
 		 Waymark ReadWaymark(IntPtr addr, WaymarkID id) => new Waymark
