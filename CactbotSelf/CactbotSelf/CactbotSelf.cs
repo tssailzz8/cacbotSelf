@@ -1,19 +1,23 @@
 ﻿using Advanced_Combat_Tracker;
+using FFXIV_ACT_Plugin.Memory.MemoryReader;
+using FFXIV_ACT_Plugin.Memory;
 using RainbowMage.OverlayPlugin;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.MinIoC;
 
 namespace CactbotSelf
 {
-	public class CactbotSelf : IActPluginV1, IOverlayAddonV2
+	public class CactbotSelf : UserControl,IActPluginV1, IOverlayAddonV2
 	{
 		public string pluginPath = "";
 		private static TinyIoCContainer TinyIoCContainer;
@@ -21,9 +25,19 @@ namespace CactbotSelf
 		private static EventSource EventSource;
 		private BackgroundWorker _processSwitcher;
 		public static Process FFXIV ;
-		FFXIV_ACT_Plugin.FFXIV_ACT_Plugin ffxivPlugin;
-		public void DeInitPlugin()
+        public static FFXIV_ACT_Plugin.FFXIV_ACT_Plugin ffxivPlugin;
+		public MainClass mainClass;
+		public TabPage tabPagetabPagetabPage;
+		public Label labe;
+        private static MoreLogLineUI PluginUI;
+        public void DeInitPlugin()
 		{
+            mainClass.DeInitPlugin();
+
+            if (System.IO.File.Exists(Offsets._tempfilename))
+			{
+				System.IO.File.Delete(Offsets._tempfilename);
+			}
 			_processSwitcher.CancelAsync();
 			foreach (var item in Registry.EventSources)
 			{
@@ -40,21 +54,50 @@ namespace CactbotSelf
 
 		public void Init()
 		{
+			//if (TinyIoCContainer is not null)
+			//{
+			//	return;
+			//}
 			//获取sig
-			var window = NativeMethods.FindWindow("FFXIVGAME", null);
+            var window = NativeMethods.FindWindow("FFXIVGAME", null);
 			NativeMethods.GetWindowThreadProcessId(window, out var pid);
 			var proc = Process.GetProcessById(Convert.ToInt32(pid));
-			var gamePath = proc.MainModule?.FileName;
-			var oodleNative_Ffxiv = new Offsets(gamePath);
-			TinyIoCContainer = Registry.GetContainer();
+            TinyIoCContainer = Registry.GetContainer();
+           
+            Registry = TinyIoCContainer.Resolve<Registry>();
+            var gamePath = proc.MainModule?.FileName;
 
-			Registry = TinyIoCContainer.Resolve<Registry>();
-			EventSource = new EventSource(TinyIoCContainer);
+            var oodleNative_Ffxiv = new Offsets(gamePath);
+			
+
+			//Registry.StartEventSource(new EventSource(TinyIoCContainer));
+			//EventSource = (EventSource)Registry.EventSources.FirstOrDefault(p => p.Name == "CactbotSelf");
 			// Register EventSource
-			Registry.StartEventSource(EventSource);
+			var ff14 = ffxivPlugin.DataRepository.GetCurrentFFXIVProcess();
+            if (EventSource == null)
+			{
+				if (FFXIV == null)  return; 
+				EventSource = new EventSource(TinyIoCContainer, FFXIV);
+				Registry.StartEventSource(EventSource);
+			}
+			oodleNative_Ffxiv.findNetDown();
+			oodleNative_Ffxiv.UnInitialize();
+			mainClass = new MainClass();
+			mainClass.InitPlugin(PluginUI);
+
+
+
+			//var container = Registry.GetContainer();
+			//var registry = container.Resolve<Registry>();
+			//var eventSource = (EventSource)registry.EventSources.FirstOrDefault(p => p.Name == "CactbotSelf");
+			//if (eventSource == null)
+			//{
+			//	eventSource = new EventSource(container);
+			//	registry.StartEventSource(eventSource);
+			//}
 
 		}
-		private object GetFfxivPlugin()
+		public   object GetFfxivPlugin()
 		{
 			ffxivPlugin = null;
 
@@ -70,12 +113,15 @@ namespace CactbotSelf
 
 		public void InitPlugin(TabPage pluginScreenSpace, Label pluginStatusText)
 		{
-			pluginStatusText.Text = "Ready.";
-			GetFfxivPlugin();
+			pluginStatusText.Text = "Ready";
+            GetFfxivPlugin();
 			// We don't need a tab here.
-			((TabControl)pluginScreenSpace.Parent).TabPages.Remove(pluginScreenSpace);
-
-			foreach (var plugin in ActGlobals.oFormActMain.ActPlugins)
+			pluginScreenSpace.Text = "MoreLogLine";
+            tabPagetabPagetabPage = pluginScreenSpace;
+			labe = pluginStatusText;
+            PluginUI = new MoreLogLineUI();
+            PluginUI.InitializeComponent(pluginScreenSpace);
+            foreach (var plugin in ActGlobals.oFormActMain.ActPlugins)
 			{
 				if (plugin.pluginObj == this)
 				{
@@ -83,11 +129,14 @@ namespace CactbotSelf
 					break;
 				}
 			}
-			//FFXIV = ffxivPlugin.DataRepository.GetCurrentFFXIVProcess()
-			//?? Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault();
-			_processSwitcher = new BackgroundWorker { WorkerSupportsCancellation = true };
+
+            //FFXIV = ffxivPlugin.DataRepository.GetCurrentFFXIVProcess()
+            //?? Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault();
+            _processSwitcher = new BackgroundWorker { WorkerSupportsCancellation = true };
 			_processSwitcher.DoWork += ProcessSwitcher;
 			_processSwitcher.RunWorkerAsync();
+			
+
 			//Init();
 		}
 		/// <summary>
@@ -105,15 +154,20 @@ namespace CactbotSelf
 					e.Cancel = true;
 					break;
 				}
-
-				if (FFXIV != GetFFXIVProcess())
+				FFXIV = GetFFXIVProcess();
+				if (FFXIV != null)
 				{
-					FFXIV = GetFFXIVProcess();
-					if (FFXIV != null)
-						if (FFXIV.ProcessName == "ffxiv")
-							return;
-						else Init();
+					Init();
+					return;
 				}
+				//if (FFXIV != GetFFXIVProcess())
+				//{
+				//	FFXIV = GetFFXIVProcess();
+				//	if (FFXIV is not null)
+				//		if (FFXIV.ProcessName == "ffxiv")
+				//			MessageBox.Show("错误：游戏运行于DX9模式下") ;
+				//		else Init();
+				//}
 
 				Thread.Sleep(3000);
 			}
@@ -122,5 +176,6 @@ namespace CactbotSelf
 		{
 			return ffxivPlugin.DataRepository.GetCurrentFFXIVProcess();
 		}
+
 	}
 }

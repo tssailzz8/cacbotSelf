@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C9E4A59B-BF33-4CA5-A9FF-BB89C5C8985C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CactbotSelf</RootNamespace>
+    <AssemblyName>CactbotSelf</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Advanced Combat Tracker">
+      <HintPath>E:\Advanced Combat Tracker\Advanced Combat Tracker.exe</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FFXIV_ACT_Plugin">
+      <HintPath>E:\Advanced Combat Tracker\Plugins\FFXIV_ACT_Plugin.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FFXIV_ACT_Plugin.Common">
+      <HintPath>..\..\..\..\国际服\IINACT\external_dependencies\SDK\FFXIV_ACT_Plugin.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FFXIV_ACT_Plugin.Logfile">
+      <HintPath>..\..\..\..\actsdk\SDK\FFXIV_ACT_Plugin.Logfile.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FFXIV_ACT_Plugin.Memory">
+      <HintPath>..\..\..\..\actsdk\SDK\FFXIV_ACT_Plugin.Memory.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Iced, Version=1.17.0.0, Culture=neutral, PublicKeyToken=5baba79f4264913b, processorArchitecture=MSIL">
+      <HintPath>..\packages\Iced.1.17.0\lib\net45\Iced.dll</HintPath>
+    </Reference>
+    <Reference Include="Machina">
+      <HintPath>..\..\..\..\actsdk\SDK\Machina.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>E:\Advanced Combat Tracker\Plugins\NGLD\libs\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OverlayPlugin.Common">
+      <HintPath>E:\Advanced Combat Tracker\Plugins\NGLD\libs\OverlayPlugin.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OverlayPlugin.Core">
+      <HintPath>E:\Advanced Combat Tracker\Plugins\NGLD\libs\OverlayPlugin.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CactbotSelfEventSourceConfigPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CactbotSelfEventSourceConfigPanel.Designer.cs">
+      <DependentUpon>CactbotSelfEventSourceConfigPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CactbotSelfEventSourceConfig.cs" />
+    <Compile Include="CactbotSelf.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="EventSource.cs" />
+    <Compile Include="GameCamera.cs" />
+    <Compile Include="JSEvent.cs" />
+    <Compile Include="MainClass.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MemHelper.cs" />
+    <Compile Include="MoreLogLineUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="内存相关\NativeMethods.cs" />
+    <Compile Include="内存相关\offset\Offsets.cs" />
+    <Compile Include="内存相关\offset\OpcodeFind.cs" />
+    <Compile Include="内存相关\OodleNative_Ffxiv.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="内存相关\SigScan.cs" />
+    <Compile Include="SizeCache.cs" />
+    <Compile Include="Waymark.cs" />
+    <Compile Include="WayMarks.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CactbotSelfEventSourceConfigPanel.resx">
+      <DependentUpon>CactbotSelfEventSourceConfigPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainClass.resx">
+      <DependentUpon>MainClass.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MoreLogLineUI.resx">
+      <DependentUpon>MoreLogLineUI.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

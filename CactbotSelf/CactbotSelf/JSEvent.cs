@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CactbotSelf
 {
@@ -99,6 +101,30 @@ namespace CactbotSelf
 			public Waymark TWO;
 			public Waymark THREE;
 			public Waymark FOUR;
-		} 
+		}
+		public class ShunXu
+		{
+			public int order;
+			public string job;
+			public ShunXu(int Order,string Job)
+			{
+				order = Order;
+				job = Job;
+			}
+		}
+		public class GetConfigEvent : JSEvent
+		{
+			public bool isOpen;
+			public List<ShunXu> shunxu;
+			public GetConfigEvent()
+			{
+
+			}
+
+			public string EventName()
+			{
+				return "getConfig";
+			}
+		}
 	}
 }

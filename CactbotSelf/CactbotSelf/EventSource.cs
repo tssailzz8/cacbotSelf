@@ -21,28 +21,71 @@ namespace CactbotSelf
 		private static int kSlowTimerMilli = 300;
 		public delegate void PlayerControlHandler(JSEvents.PlayerControlEvent e);
 		public event PlayerControlHandler OnPlayerControl;
+		public delegate void GetConfigHandler(JSEvents.GetConfigEvent e);
+		public event GetConfigHandler GetConfig;
 		public IntPtr cameraAdress;
 		public IntPtr MarkingAdress;
+		protected ILogger logger;
+		public CactbotSelfEventSourceConfig Config { get; private set; }
 		public long DataSectionOffset { get; private set; }
 		/// <summary>
 		/// The size of the .data section.
 		/// </summary>
 		public int DataSectionSize { get; private set; }
 		GameCamera data { get; set; }
-		public EventSource(TinyIoCContainer container) : base(container)
+		public EventSource(TinyIoCContainer container,Process ff14) : base(container)
 		{
-			_memhelper = new MemHelper(CactbotSelf.FFXIV);
-			Name = "CactbotSelf";
-			SetupSearchSpace(CactbotSelf.FFXIV.MainModule);
-			//InitializeEvents();
+			if (ff14 is null)
+			{
+				return;
+			}
 			RegisterEventTypes(new List<string>()
 	  {
 		"onPlayerControl",
+		"getConfig",
 	  });
+			logger = container.Resolve<ILogger>();
+			_memhelper = new MemHelper(ff14);
+			Name = "CactbotSelf";
+			SetupSearchSpace(ff14.MainModule);
+			//InitializeEvents();
+			logger.Log(LogLevel.Info,"第一次");
+
 			IntPtr cameraOffect =(IntPtr) ((UInt64)_memhelper.BaseAddress + Offsets.camera);
 			cameraAdress = ReadIntPtr(cameraOffect);
 			var abc = Offsets.MarkingController + (ulong)_memhelper.BaseAddress;
 			MarkingAdress =IntPtr.Add(GetStaticAddressFromSig((IntPtr)abc),0x1b0);
+			RegisterEventHandler("getConfig", (msg) =>
+			{
+				var send = new JSEvents.GetConfigEvent();
+				send.isOpen = Config.open;
+				var list = new List<JSEvents.ShunXu>();
+				for (int i = 0; i < Config.shunxu.Count; i++)
+				{
+					var shunxu = new JSEvents.ShunXu(i, Config.shunxu[i]);
+					list.Add( shunxu);
+				}
+				send.shunxu = list;
+				return JObject.FromObject(send);
+			}
+			);
+			RegisterEventHandler("onPlayerControl", (msg) =>
+			{
+				var tempMarks = new WayMarks();
+
+				tempMarks.A = ReadWaymark(MarkingAdress + 0x00, WaymarkID.A);
+				tempMarks.B = ReadWaymark(MarkingAdress + 0x20, WaymarkID.B);
+				tempMarks.C = ReadWaymark(MarkingAdress + 0x40, WaymarkID.C);
+				tempMarks.D = ReadWaymark(MarkingAdress + 0x60, WaymarkID.D);
+				tempMarks.One = ReadWaymark(MarkingAdress + 0x80, WaymarkID.One);
+				tempMarks.Two = ReadWaymark(MarkingAdress + 0xA0, WaymarkID.Two);
+				tempMarks.Three = ReadWaymark(MarkingAdress + 0xC0, WaymarkID.Three);
+				tempMarks.Four = ReadWaymark(MarkingAdress + 0xE0, WaymarkID.Four);
+				JSEvents.Camera caream = new JSEvents.Camera(ReadFloat(cameraAdress + 0x130), ReadFloat(cameraAdress + 0x134));
+				var send = new JSEvents.PlayerControlEvent(caream, tempMarks.A, tempMarks.B, tempMarks.C, tempMarks.D, tempMarks.One, tempMarks.Two, tempMarks.Three, tempMarks.Four);
+				return JObject.FromObject(send);
+			}
+			);
 
 		}
 		private void SetupSearchSpace(ProcessModule module)
@@ -122,28 +165,30 @@ namespace CactbotSelf
 		public IntPtr ReadIntPtr(IntPtr address, int offset = 0) => _memhelper.Read<IntPtr>(IntPtr.Add(address, offset));
 		public override Control CreateConfigControl()
 		{
-			return null;
+			
+			return new CactbotSelfEventSourceConfigPanel(this); ;
+			//return null;
 		}
 
 		public override void LoadConfig(IPluginConfig config)
 		{
-			return;
+			Config = CactbotSelfEventSourceConfig.LoadConfig(config);
 		}
 
 		public override void SaveConfig(IPluginConfig config)
 		{
-			return;
+			Config.SaveConfig(config);
 		}
 		public override void Stop()
 		{
 			fast_update_timer_.Stop();
 
 		}
-
-		protected override void Update()
+		public override void Start()
 		{
 			fast_update_timer_ = new System.Timers.Timer();
-			fast_update_timer_.Elapsed += (o, args) => {
+			fast_update_timer_.Elapsed += (o, args) =>
+			{
 				int timer_interval = kSlowTimerMilli;
 				try
 				{
@@ -157,11 +202,15 @@ namespace CactbotSelf
 			};
 			fast_update_timer_.AutoReset = false;
 			OnPlayerControl += (e) => DispatchToJS(e);
+			GetConfig += (e) => DispatchToJS(e);
 			fast_update_timer_.Interval = kFastTimerMilli;
 			fast_update_timer_.Start();
 		}
-
-		 Waymark ReadWaymark(IntPtr addr, WaymarkID id) => new Waymark
+		protected override void Update()
+		{
+			
+		}
+		Waymark ReadWaymark(IntPtr addr, WaymarkID id) => new Waymark
 		{
 			X = ReadFloat(addr),
 			Y = ReadFloat(addr + 0x4),
