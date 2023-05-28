@@ -1,13 +1,16 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Advanced_Combat_Tracker;
+using Newtonsoft.Json.Linq;
 using RainbowMage.OverlayPlugin;
 using RainbowMage.OverlayPlugin.EventSources;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -26,6 +29,9 @@ namespace CactbotSelf
 		public IntPtr cameraAdress;
 		public IntPtr MarkingAdress;
 		protected ILogger logger;
+		private BackgroundWorker _processSwitcher;
+		public  FFXIV_ACT_Plugin.FFXIV_ACT_Plugin ffxivPlugin;
+		public  Process FFXIV;
 		public CactbotSelfEventSourceConfig Config { get; private set; }
 		public long DataSectionOffset { get; private set; }
 		/// <summary>
@@ -33,28 +39,19 @@ namespace CactbotSelf
 		/// </summary>
 		public int DataSectionSize { get; private set; }
 		GameCamera data { get; set; }
-		public EventSource(TinyIoCContainer container,Process ff14) : base(container)
+		public EventSource(TinyIoCContainer container) : base(container)
 		{
-			if (ff14 is null)
-			{
-				return;
-			}
 			RegisterEventTypes(new List<string>()
 	  {
 		"onPlayerControl",
 		"getConfig",
 	  });
 			logger = container.Resolve<ILogger>();
-			_memhelper = new MemHelper(ff14);
+			
 			Name = "CactbotSelf";
-			SetupSearchSpace(ff14.MainModule);
 			//InitializeEvents();
-			logger.Log(LogLevel.Info,"第一次");
 
-			IntPtr cameraOffect =(IntPtr) ((UInt64)_memhelper.BaseAddress + Offsets.camera);
-			cameraAdress = ReadIntPtr(cameraOffect);
-			var abc = Offsets.MarkingController + (ulong)_memhelper.BaseAddress;
-			MarkingAdress =IntPtr.Add(GetStaticAddressFromSig((IntPtr)abc),0x1b0);
+
 			RegisterEventHandler("getConfig", (msg) =>
 			{
 				var send = new JSEvents.GetConfigEvent();
@@ -69,24 +66,20 @@ namespace CactbotSelf
 				return JObject.FromObject(send);
 			}
 			);
-			RegisterEventHandler("onPlayerControl", (msg) =>
+
+		}
+		public object GetFfxivPlugin()
+		{
+			ffxivPlugin = null;
+
+			if (ffxivPlugin == null)
 			{
-				var tempMarks = new WayMarks();
-
-				tempMarks.A = ReadWaymark(MarkingAdress + 0x00, WaymarkID.A);
-				tempMarks.B = ReadWaymark(MarkingAdress + 0x20, WaymarkID.B);
-				tempMarks.C = ReadWaymark(MarkingAdress + 0x40, WaymarkID.C);
-				tempMarks.D = ReadWaymark(MarkingAdress + 0x60, WaymarkID.D);
-				tempMarks.One = ReadWaymark(MarkingAdress + 0x80, WaymarkID.One);
-				tempMarks.Two = ReadWaymark(MarkingAdress + 0xA0, WaymarkID.Two);
-				tempMarks.Three = ReadWaymark(MarkingAdress + 0xC0, WaymarkID.Three);
-				tempMarks.Four = ReadWaymark(MarkingAdress + 0xE0, WaymarkID.Four);
-				JSEvents.Camera caream = new JSEvents.Camera(ReadFloat(cameraAdress + 0x130), ReadFloat(cameraAdress + 0x134));
-				var send = new JSEvents.PlayerControlEvent(caream, tempMarks.A, tempMarks.B, tempMarks.C, tempMarks.D, tempMarks.One, tempMarks.Two, tempMarks.Three, tempMarks.Four);
-				return JObject.FromObject(send);
+				IActPluginV1 actPluginV = (from x in ActGlobals.oFormActMain.ActPlugins
+										   where x.pluginFile.Name.ToUpper().Contains("FFXIV_ACT_Plugin".ToUpper())
+										   select x.pluginObj).FirstOrDefault<IActPluginV1>();
+				ffxivPlugin = (FFXIV_ACT_Plugin.FFXIV_ACT_Plugin)actPluginV;
 			}
-			);
-
+			return ffxivPlugin;
 		}
 		private void SetupSearchSpace(ProcessModule module)
 		{
@@ -182,10 +175,66 @@ namespace CactbotSelf
 		public override void Stop()
 		{
 			fast_update_timer_.Stop();
+			
+			CactbotSelf.mainClass.DeInitPlugin();
 
 		}
 		public override void Start()
 		{
+			GetFfxivPlugin();
+			_processSwitcher = new BackgroundWorker { WorkerSupportsCancellation = true };
+			_processSwitcher.DoWork += ProcessSwitcher;
+			_processSwitcher.RunWorkerAsync();
+
+			
+		}
+		private void ProcessSwitcher(object sender, DoWorkEventArgs e)
+		{
+			while (true)
+			{
+				if (_processSwitcher.CancellationPending)
+				{
+					e.Cancel = true;
+					break;
+				}
+				FFXIV = GetFFXIVProcess();
+				if (FFXIV != null)
+				{
+					Init();
+					return;
+				}
+				//if (FFXIV != GetFFXIVProcess())
+				//{
+				//	FFXIV = GetFFXIVProcess();
+				//	if (FFXIV is not null)
+				//		if (FFXIV.ProcessName == "ffxiv")
+				//			MessageBox.Show("错误：游戏运行于DX9模式下") ;
+				//		else Init();
+				//}
+
+				Thread.Sleep(3000);
+			}
+		}
+		private static TinyIoCContainer TinyIoCContainer;
+		private static Registry Registry;
+		public void Init()
+		{
+			//获取sig
+			var window = NativeMethods.FindWindow("FFXIVGAME", null);
+			NativeMethods.GetWindowThreadProcessId(window, out var pid);
+			var proc = Process.GetProcessById(Convert.ToInt32(pid));
+			var gamePath = proc.MainModule?.FileName;
+			var oodleNative_Ffxiv = new Offsets(gamePath);
+			_memhelper = new MemHelper(FFXIV);
+			SetupSearchSpace(FFXIV.MainModule);
+			IntPtr cameraOffect = (IntPtr)((UInt64)_memhelper.BaseAddress + Offsets.camera);
+			cameraAdress = ReadIntPtr(cameraOffect);
+			var abc = Offsets.MarkingController + (ulong)_memhelper.BaseAddress;
+			MarkingAdress = IntPtr.Add(GetStaticAddressFromSig((IntPtr)abc), 0x1b0);
+			oodleNative_Ffxiv.findNetDown();
+			oodleNative_Ffxiv.UnInitialize();
+			CactbotSelf.mainClass.InitPlugin(CactbotSelf.PluginUI);
+
 			fast_update_timer_ = new System.Timers.Timer();
 			fast_update_timer_.Elapsed += (o, args) =>
 			{
@@ -205,6 +254,11 @@ namespace CactbotSelf
 			GetConfig += (e) => DispatchToJS(e);
 			fast_update_timer_.Interval = kFastTimerMilli;
 			fast_update_timer_.Start();
+
+		}
+		private Process GetFFXIVProcess()
+		{
+			return ffxivPlugin.DataRepository.GetCurrentFFXIVProcess();
 		}
 		protected override void Update()
 		{

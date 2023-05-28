@@ -31,7 +31,7 @@ namespace CactbotSelf
             }
             else
             {
-                NetworkAdress = FindPattern("48 89 5C 24 ?? 56 48 83 EC 50 8B F2")[0];
+                NetworkAdress = FindPattern("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 8B F2")[0];
             }
             var bytes = ReadBytes(NetworkAdress, 400);
             var codeReader = new ByteArrayCodeReader(bytes);

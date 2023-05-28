@@ -21,6 +21,8 @@ using System.Runtime.CompilerServices;
 using Machina.Infrastructure;
 using RainbowMage.OverlayPlugin;
 using System.Xml.Linq;
+using System.Data.SqlTypes;
+using System.Text;
 
 namespace CactbotSelf
 {
@@ -67,9 +69,10 @@ namespace CactbotSelf
             ActorMove = (ushort)GetOpcode("ActorMove");
             ActorControl = (ushort)GetOpcode("ActorControl");
             ActorControlSelf = (ushort)GetOpcode("ActorControlSelf");
-            //MessageBox.Show(ActorCast.ToString("X4"));
+			NpcSpawnOpcode= (ushort)GetOpcode("NpcSpawn");
+			//MessageBox.Show(NpcSpawnOpcode.ToString("X4"));
 
-            HideTab();
+			HideTab();
 
             GetFfxivPlugin();
             var iocContainer = ffxivPlugin.GetType().GetField("_iocContainer", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(ffxivPlugin) as Microsoft.MinIoC.Container;
@@ -233,10 +236,151 @@ namespace CactbotSelf
             ffxivPlugin.DataSubscription.NetworkReceived -= new NetworkReceivedDelegate(this.MoreLogLines_OnNetworkReceived);
             PluginUI.SaveSettings();
         }
-        #endregion
+		#endregion
+		private UInt16 NpcSpawnOpcode;
+		[StructLayout(LayoutKind.Explicit, Size = 0x2a0)]
+		public unsafe struct NpcSpawn
+		{
+			[FieldOffset(0x0)]
+			public uint gimmickId; // needs to be existing in the map, mob will snap to it
+			[FieldOffset(4)]
+			public byte u2b;
+			[FieldOffset(5)]
+			public byte u2ab;
+			[FieldOffset(6)]
+			public byte gmRank;
+			[FieldOffset(7)]
+			public byte u3b;
+			[FieldOffset(8)]
+			public byte aggressionMode; // 1 passive, 2 aggressive
+			[FieldOffset(9)]
+			public byte onlineStatus;
+			[FieldOffset(10)]
+			public byte u3c;
+			[FieldOffset(11)]
+			public byte pose;
+			[FieldOffset(12)]
+			public uint u4;
+			[FieldOffset(16)]
+			public long targetId;
+			[FieldOffset(24)]
+			public uint u6;
+			[FieldOffset(28)]
+			public uint u7;
+			[FieldOffset(32)]
+			public long mainWeaponModel;
+			[FieldOffset(40)]
+			public long secWeaponModel;
+			[FieldOffset(48)]
+			public long craftToolModel;
+			[FieldOffset(56)]
+			public uint u14;
+			[FieldOffset(60)]
+			public uint u15;
+			[FieldOffset(64)]
+			public uint bNPCBase; //dataID
+			[FieldOffset(68)]
+			public uint bNPCName;
+			[FieldOffset(72)]
+			public uint levelId;
+			[FieldOffset(76)]
+			public uint u19;
+			[FieldOffset(80)]
+			public uint directorId;
+			[FieldOffset(84)]
+			public uint spawnerId;  //objectID
+			[FieldOffset(88)]
+			public uint parentActorId;
+			[FieldOffset(92)]
+			public uint hPMax;
+			[FieldOffset(96)]
+			public uint hPCurr;
+			[FieldOffset(100)]
+			public uint displayFlags;
+			[FieldOffset(104)]
+			public ushort fateID;
+			[FieldOffset(106)]
+			public ushort mPCurr;
+			[FieldOffset(108)]
+			public ushort unknown1; // 0
+			[FieldOffset(110)]
+			public ushort unknown2; // 0 or pretty big numbers > 30000
+			[FieldOffset(112)]
+			public ushort modelChara;
+			[FieldOffset(114)]
+			public ushort rotation;
+			[FieldOffset(116)]
+			public ushort activeMinion;
+			[FieldOffset(118)]
+			public byte spawnIndex;
+			[FieldOffset(119)]
+			public byte state;
+			[FieldOffset(120)]
+			public byte persistantEmote;
+			[FieldOffset(121)]
+			public byte modelType;
+			[FieldOffset(122)]
+			public byte subtype;
+			[FieldOffset(123)]
+			public uint8_t voice;  //2为正常显示怪物 1应该是玩家
+			[FieldOffset(124)]
+			public uint16_t u25c;
+			[FieldOffset(126)]
+			public uint8_t enemyType;
+			[FieldOffset(127)]
+			public uint8_t level;
+			[FieldOffset(128)]
+			public uint8_t classJob;
+			[FieldOffset(129)]
+			public uint8_t u26d;
+			[FieldOffset(130)]
+			public uint16_t u27a;
+			[FieldOffset(132)]
+			public uint8_t currentMount;
+			[FieldOffset(133)]
+			public uint8_t mountHead;
+			[FieldOffset(134)]
+			public uint8_t mountBody;
+			[FieldOffset(135)]
+			public uint8_t mountFeet;
+			[FieldOffset(136)]
+			public uint8_t mountColor;
+			[FieldOffset(137)]
+			public uint8_t scale;
+			[FieldOffset(138)]
+			public uint16_t elementalLevel; // Eureka
+			[FieldOffset(140)]
+			public uint16_t element; // Eureka
+									 //[MarshalAs(UnmanagedType.ByValArray, SizeConst = 30)]
+									 //public Status[] effect;
+			[FieldOffset(142)]
+			public fixed byte Effects1[30 * 3 * 4];
+			[FieldOffset(508)]
+			public FFXIVARR_POSITION3 pos;
+			[FieldOffset(520)]
+			public fixed uint32_t models[10];
+			[FieldOffset(560)]
+			public fixed byte name[0x40];
+			[FieldOffset(624)]
+			public fixed uint8_t look[26];
+			[FieldOffset(626)]
+			public fixed byte fcTag[12];
+			[FieldOffset(638)]
 
+			public uint32_t unk30;
+			[FieldOffset(646)]
+			public uint32_t unk31;
+			[FieldOffset(654)]
+			public uint8_t bNPCPartSlot;
+			[FieldOffset(655)]
+			public uint8_t unk32;
+			[FieldOffset(656)]
+			public uint16_t unk33;
+			[FieldOffset(660)]
+			public uint32_t unk34;
+		}
 
-        [StructLayout(LayoutKind.Explicit)]
+		[StructLayout(LayoutKind.Explicit)]
         public unsafe struct ServerMessageHeader
         {
             [FieldOffset(0)]
@@ -506,25 +650,27 @@ namespace CactbotSelf
                         ProcesActorSetPos(header->ActorID, (FFXIVIpcActorSetPos*)dataPtr);
                     if (header->MessageType == ActorControl)
                         ProcesActorControl(header->ActorID, (ActorControlStruct*)dataPtr, epoch);
+					if (header->MessageType == NpcSpawnOpcode)
+						ProcesNpcSpawnOpcode(header->ActorID, (NpcSpawn*)dataPtr, epoch);
 
-                    //switch (header->MessageType) {
-                    //    case (ActorMove):
-                    //        ProcessActorMove(header->ActorID, (FFXIVIpcActorMove*)dataPtr);
-                    //        break;
-                    //    case (WeatherChane):
-                    //        ProcesWeatherChane(header->ActorID, (FFXIVIpcWeatherChane*)dataPtr);
-                    //        break;
-                    //    case (MapEffect):
-                    //        ProcesMapEffect(header->ActorID, (FFXIVIpcMapEffect*)dataPtr);
-                    //        break;
-                    //    case (ObjectSpawn):
-                    //        //PluginUI.Log(header->MessageLength.ToString());
-                    //        ProcessObjectSpawn(header->ActorID, (FFXIVIpcObjectSpawn*)dataPtr);
-                    //        break;
-                    //    default:
-                    //        return;
-                    //}
-                }
+					//switch (header->MessageType) {
+					//    case (ActorMove):
+					//        ProcessActorMove(header->ActorID, (FFXIVIpcActorMove*)dataPtr);
+					//        break;
+					//    case (WeatherChane):
+					//        ProcesWeatherChane(header->ActorID, (FFXIVIpcWeatherChane*)dataPtr);
+					//        break;
+					//    case (MapEffect):
+					//        ProcesMapEffect(header->ActorID, (FFXIVIpcMapEffect*)dataPtr);
+					//        break;
+					//    case (ObjectSpawn):
+					//        //PluginUI.Log(header->MessageLength.ToString());
+					//        ProcessObjectSpawn(header->ActorID, (FFXIVIpcObjectSpawn*)dataPtr);
+					//        break;
+					//    default:
+					//        return;
+					//}
+				}
 
             }
             catch (Exception ex)
@@ -538,7 +684,7 @@ namespace CactbotSelf
 
 
 
-        private Combatant GetCombatantByID(uint ID)
+		private Combatant GetCombatantByID(uint ID)
         {
             return CombatantManager.GetCombatantById(ID);
         }
@@ -583,10 +729,41 @@ namespace CactbotSelf
                 if (obj.OwnerID < 0x40000000 && obj.OwnerID > 0) return;
                 var log = $"{actorId:X}:{obj.Name}:{(message->posX - 32767) / 32.767:f2}:{(message->posY - 32767) / 32.767:f2}:{(message->posZ - 32767) / 32.767:f2}:{Convert.ToDouble((message->headRotation - 32767)) * Math.PI / 32767:f2}:";
                 Log("100", log);
-            }
+			}
 
         }
-        private unsafe void ProcesWeatherChane(uint actorId, uint lenth, byte[] message)
+		internal static unsafe string ReadTerminatedString(byte* ptr)
+		{
+			return Encoding.UTF8.GetString(ReadTerminatedBytes(ptr));
+		}
+		private static unsafe byte[] ReadTerminatedBytes(byte* ptr)
+		{
+			if (ptr == null)
+			{
+				return new byte[0];
+			}
+
+			var bytes = new List<byte>();
+			while (*ptr != 0)
+			{
+				bytes.Add(*ptr);
+				ptr += 1;
+			}
+
+			return bytes.ToArray();
+		}
+		private unsafe void ProcesNpcSpawnOpcode(uint actorID, NpcSpawn* dataPtr, long epoch)
+		{
+            var name= ReadTerminatedString(dataPtr->name);
+            if (dataPtr->spawnerId < 0x20000000|| actorID <  0x20000000)
+            {
+                return;
+            }
+            var log = $"{actorID:X}:{name}:{dataPtr->targetId:X}:{dataPtr->bNPCBase}:{dataPtr->bNPCName}:{dataPtr->parentActorId:X}";
+			Log("107", log);
+			WriteLogLineImpl("107", log, epoch);
+		}
+		private unsafe void ProcesWeatherChane(uint actorId, uint lenth, byte[] message)
         {
             var obj = GetCombatantByID(actorId);
             if (obj == null)
@@ -613,24 +790,12 @@ namespace CactbotSelf
         {
             var obj = GetCombatantByID(actorID);
             var type = dataPtr->category;
-            //if (type == Server_ActorControlCategory.HoT_DoT || type == Server_ActorControlCategory.CancelAbility || type == Server_ActorControlCategory.Tether || type == Server_ActorControlCategory.GainEffect || type == Server_ActorControlCategory.LoseEffect)
-            //    return;
-            //if (type == Server_ActorControlCategory.UpdateEffect || type == Server_ActorControlCategory.Targetable || type == Server_ActorControlCategory.LimitBreak || type == Server_ActorControlCategory.DirectorUpdate)
-            //{
-            //    return;
-            //}
-            //if (type == 0 || type == (Server_ActorControlCategory)4||type== (Server_ActorControlCategory)0x5)
-            //{
-            //    return;
-            //}
-            if (type != (Server_ActorControlCategory)407 && type != (Server_ActorControlCategory)0x1e)
+
+            if (type != (Server_ActorControlCategory)407 && type != (Server_ActorControlCategory)0x1e && type != (Server_ActorControlCategory)49)
             {
                 return;
             }
-            //if (type != (Server_ActorControlCategory)0x1e)
-            //{
-            //    return;
-            //}
+
             if (obj == null)
             {
                 var log = $"{actorID:X}::{dataPtr->category:X}:{dataPtr->padding:X4}:{dataPtr->param1:X8}:{dataPtr->type:X8}:{dataPtr->param3:X8}:{dataPtr->param4:X8}::{dataPtr->padding1:X8}:";

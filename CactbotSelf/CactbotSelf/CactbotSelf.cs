@@ -26,19 +26,13 @@ namespace CactbotSelf
 		private BackgroundWorker _processSwitcher;
 		public static Process FFXIV ;
         public static FFXIV_ACT_Plugin.FFXIV_ACT_Plugin ffxivPlugin;
-		public MainClass mainClass;
+		public static MainClass mainClass;
 		public TabPage tabPagetabPagetabPage;
 		public Label labe;
-        private static MoreLogLineUI PluginUI;
+        public static MoreLogLineUI PluginUI;
         public void DeInitPlugin()
 		{
-            mainClass.DeInitPlugin();
-
-            if (System.IO.File.Exists(Offsets._tempfilename))
-			{
-				System.IO.File.Delete(Offsets._tempfilename);
-			}
-			_processSwitcher.CancelAsync();
+			//mainClass.DeInitPlugin();
 			foreach (var item in Registry.EventSources)
 			{
 				if (item.Name == "CactbotSelf" && item != null)
@@ -50,6 +44,12 @@ namespace CactbotSelf
 			Type type = typeof(Registry);
 			FieldInfo fieldInfo = type.GetField("_eventSources", BindingFlags.Instance | BindingFlags.NonPublic);
 			((List<IEventSource>)fieldInfo.GetValue(Registry)).Remove(EventSource);
+			if (System.IO.File.Exists(Offsets._tempfilename))
+			{
+				System.IO.File.Delete(Offsets._tempfilename);
+			}
+
+
 		}
 
 		public void Init()
@@ -69,24 +69,11 @@ namespace CactbotSelf
 
             var oodleNative_Ffxiv = new Offsets(gamePath);
 			
-
-			//Registry.StartEventSource(new EventSource(TinyIoCContainer));
-			//EventSource = (EventSource)Registry.EventSources.FirstOrDefault(p => p.Name == "CactbotSelf");
-			// Register EventSource
-			var ff14 = ffxivPlugin.DataRepository.GetCurrentFFXIVProcess();
-            if (EventSource == null)
-			{
-				if (FFXIV == null)  return; 
-				EventSource = new EventSource(TinyIoCContainer, FFXIV);
-				Registry.StartEventSource(EventSource);
-			}
 			oodleNative_Ffxiv.findNetDown();
 			oodleNative_Ffxiv.UnInitialize();
-			mainClass = new MainClass();
-			mainClass.InitPlugin(PluginUI);
-
-
-
+			//CactbotSelf.mainClass.InitPlugin(PluginUI);
+			//mainClass = new MainClass();
+			//CactbotSelf.mainClass.InitPlugin(PluginUI);
 			//var container = Registry.GetContainer();
 			//var registry = container.Resolve<Registry>();
 			//var eventSource = (EventSource)registry.EventSources.FirstOrDefault(p => p.Name == "CactbotSelf");
@@ -120,8 +107,9 @@ namespace CactbotSelf
             tabPagetabPagetabPage = pluginScreenSpace;
 			labe = pluginStatusText;
             PluginUI = new MoreLogLineUI();
-            PluginUI.InitializeComponent(pluginScreenSpace);
-            foreach (var plugin in ActGlobals.oFormActMain.ActPlugins)
+			//pluginScreenSpace.Controls.Add(PluginUI);
+			PluginUI.InitializeComponent(pluginScreenSpace);
+			foreach (var plugin in ActGlobals.oFormActMain.ActPlugins)
 			{
 				if (plugin.pluginObj == this)
 				{
@@ -129,13 +117,21 @@ namespace CactbotSelf
 					break;
 				}
 			}
+			TinyIoCContainer = Registry.GetContainer();;
+			Registry = TinyIoCContainer.Resolve<Registry>();
+			mainClass = new();
+			if (EventSource == null)
+			{
+				EventSource = new EventSource(TinyIoCContainer);
+				Registry.StartEventSource(EventSource);
+			}
+			//FFXIV = ffxivPlugin.DataRepository.GetCurrentFFXIVProcess()
+			//?? Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault();
+			//之前办法
+			//         _processSwitcher = new BackgroundWorker { WorkerSupportsCancellation = true };
+			//_processSwitcher.DoWork += ProcessSwitcher;
+			//_processSwitcher.RunWorkerAsync();
 
-            //FFXIV = ffxivPlugin.DataRepository.GetCurrentFFXIVProcess()
-            //?? Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault();
-            _processSwitcher = new BackgroundWorker { WorkerSupportsCancellation = true };
-			_processSwitcher.DoWork += ProcessSwitcher;
-			_processSwitcher.RunWorkerAsync();
-			
 
 			//Init();
 		}
