@@ -117,14 +117,21 @@ namespace CactbotSelf
 					break;
 				}
 			}
+			var mach = Assembly.Load("Machina.FFXIV");
+			var opcode_manager_type = mach.GetType("Machina.FFXIV.Headers.Opcodes.OpcodeManager");
+			var opcode_manager = opcode_manager_type.GetProperty("Instance").GetValue(null);
+			var machina_region = opcode_manager_type.GetProperty("GameRegion").GetValue(opcode_manager).ToString();
 			TinyIoCContainer = Registry.GetContainer();;
 			Registry = TinyIoCContainer.Resolve<Registry>();
 			mainClass = new();
+
 			if (EventSource == null)
 			{
 				EventSource = new EventSource(TinyIoCContainer);
 				Registry.StartEventSource(EventSource);
 			}
+
+		
 			//FFXIV = ffxivPlugin.DataRepository.GetCurrentFFXIVProcess()
 			//?? Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault();
 			//之前办法

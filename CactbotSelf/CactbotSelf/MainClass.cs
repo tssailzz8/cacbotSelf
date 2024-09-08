@@ -82,31 +82,32 @@ namespace CactbotSelf
             //var e = GetContainer();
             //opcodeDirc = Path.Combine(field.GetValue(e.pluginObj).ToString(), "resources", "opcodes.jsonc");
 
-            //DataManager = iocContainer.Resolve<IDataRepository>();
-
-            //var jsonData = File.ReadAllText(opcodeDirc);
-            //config = JsonConvert.DeserializeAnonymousType(jsonData, config);
-            //var iocContainer = (TinyIoCContainer)typeof(FFXIV_ACT_Plugin.FFXIV_ACT_Plugin).GetField("_iocContainer", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(ffxivPlugin);
-            if (iocContainer != null) CombatantManager = iocContainer.Resolve<ICombatantManager>();
+            DataManager = iocContainer.Resolve<IDataRepository>();
+            GetMapeffect();
+			//var jsonData = File.ReadAllText(opcodeDirc);
+			//config = JsonConvert.DeserializeAnonymousType(jsonData, config);
+			//var iocContainer = (TinyIoCContainer)typeof(FFXIV_ACT_Plugin.FFXIV_ACT_Plugin).GetField("_iocContainer", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(ffxivPlugin);
+			if (iocContainer != null) CombatantManager = iocContainer.Resolve<ICombatantManager>();
             ffxivPlugin.DataSubscription.NetworkReceived += new NetworkReceivedDelegate(this.MoreLogLines_OnNetworkReceived);
         }
-        public uint GetMapeffect()
+        public void GetMapeffect()
         {
             var gameVersion = DataManager.GetGameVersion();
-            if (gameVersion == null)
+			PluginUI.Log(gameVersion.ToString());
+			if (gameVersion == null)
             {
-                return default;
+                return ;
             }
             if (!config.ContainsKey(gameVersion))
             {
-                return default;
+                return ;
             }
             var versionOpcodes = config[gameVersion];
             if (!versionOpcodes.ContainsKey("MapEffect"))
             {
-                return default;
+                return ;
             }
-            return versionOpcodes["MapEffect"].opcode;
+           
         }
         public static ActPluginData GetContainer()
         {
@@ -508,9 +509,9 @@ namespace CactbotSelf
             [FieldOffset(1)]
             public uint8_t objKind;
             [FieldOffset(2)]
-            public uint8_t state;
+            public uint8_t Flag;
             [FieldOffset(3)]
-            public uint8_t unknown3;
+            public uint8_t __padding1;
             [FieldOffset(4)]
             public uint32_t objId;
             [FieldOffset(8)]
@@ -526,20 +527,18 @@ namespace CactbotSelf
             [FieldOffset(28)]
             public float scale;
             [FieldOffset(32)]
-            public uint16_t unknown20a;
+            public uint16_t SharedGroupTimelineState;
             [FieldOffset(34)]
             public uint16_t rotation;
             [FieldOffset(36)]
-            public uint16_t unknown24a;
+            public uint16_t FATE;
             [FieldOffset(38)]
             public uint16_t unknown24b;
             [FieldOffset(40)]
-            public uint16_t flag;
-            [FieldOffset(42)]
-            public uint16_t unknown28c;
+            public uint32_t Args2;
             [FieldOffset(44)]
-            public uint32_t housingLink;
-            [FieldOffset(48)]
+            public uint32_t Args3;
+            [FieldOffset(52)]
             public FFXIVARR_POSITION3 position;
             [FieldOffset(50)]
             public uint16_t unknown3C;
@@ -791,7 +790,7 @@ namespace CactbotSelf
             var obj = GetCombatantByID(actorID);
             var type = dataPtr->category;
 
-            if (type != (Server_ActorControlCategory)407 && type != (Server_ActorControlCategory)0x1e && type != (Server_ActorControlCategory)49)
+            if (type != (Server_ActorControlCategory)407 && type != (Server_ActorControlCategory)0x1e && type != (Server_ActorControlCategory)49 && type != (Server_ActorControlCategory)0x3e )
             {
                 return;
             }
@@ -886,8 +885,11 @@ namespace CactbotSelf
             //PluginUI.Log($"Object:{message->objId:X8}");
             //PluginUI.Log($"ObjectKind:{message->objKind:X2}");
             //PluginUI.Log($"{message->spawnIndex:X2} {message->objKind:X2} {message->state:X2} {message->objId:X8} {message->actorId:X8} {message->position.x},{message->position.y},{message->position.z}");
-            if (message->unknown3 != 0 || (message->state != 4 && message->state != 5)) return;
-            var log = $"{actorId:X8}:{message->unknown3:X2}{message->state:X2}:{message->objKind:X2}{message->spawnIndex:X2}:{message->objId:X4}:{message->someActorId14:X8}:{message->position.x:f2}:{message->position.z:f2}:{message->position.y:f2}:";
+           
+
+			if (message->__padding1 != 0 || (message->Flag != 4 && message->Flag != 5)) return;
+			var roa = Convert.ToDouble((message->rotation - 32767)) * Math.PI / 32767;
+			var log = $"{actorId:X8}:{message->__padding1:X2}{message->Flag:X2}:{message->objKind:X2}{message->spawnIndex:X2}:{message->objId:X4}:{message->someActorId14:X8}:{message->position.x:f2}:{message->position.z:f2}:{message->position.y:f2}:{roa:f2}:";
             Log("101", log);
             WriteLogLineImpl("101", log, epoch);
             //PluginUI.Log($"{message->unknown3:X2}{message->state:X2} {message->objKind:X2} {message->spawnIndex:X2}|{message->objKind:X8}|{message->actorId:X8}|{message->levelId:X8}|{message->unknown10:X8}|{message->someActorId14:X8}|{message->gimmickId:X8}|{message->scale}|{message->rotation:X4}{message->unknown20a:X4}| {message->position.x},{message->position.y},{message->position.z}");

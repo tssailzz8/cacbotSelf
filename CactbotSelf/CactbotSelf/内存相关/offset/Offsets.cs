@@ -31,11 +31,7 @@ namespace CactbotSelf
             //using (File.Create(_tempfilename)) { 
             //}
             System.IO.File.Copy(path, _tempfilename, true);
-            _libraryHandle = NativeMethods.LoadLibraryW(_tempfilename);
-            if (_libraryHandle == IntPtr.Zero)
-            {
-                return;
-            }
+
 
             NativeMethods.MODULEINFO info = new NativeMethods.MODULEINFO();
             _libraryHandle = NativeMethods.LoadLibraryW(_tempfilename);

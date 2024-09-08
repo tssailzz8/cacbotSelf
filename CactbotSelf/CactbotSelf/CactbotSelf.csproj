@@ -41,7 +41,6 @@
   <ItemGroup>
     <Reference Include="Advanced Combat Tracker">
       <HintPath>E:\Advanced Combat Tracker\Advanced Combat Tracker.exe</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Costura, Version=5.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.5.7.0\lib\netstandard1.0\Costura.dll</HintPath>
