@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -21,12 +22,15 @@ namespace CactbotSelf
         public List<RelativeJump> CallFunctions = new();
         public List<TableInfo> tableInfos=new();
         public static int MapeffectOpcode { get; set; }
-        public static int ObjectOpcode { get; set; }
+		public static int MapeffectOpcode4 { get; set; }
+		public static int MapeffectOpcode8 { get; set; }
+		public static int MapeffectOpcode12 { get; set; }
+		public static int ObjectOpcode { get; set; }
         public void findNetDown()
         {
             //40 55 56 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 37 8B FA
             //40 55 56 57 48 8D 6C 24 ?? 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 ?? 8B ?? 49 8B ??
-            var netDown = FindPattern("40 55 56 57 48 8D 6C 24 ?? 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 ?? 8B ?? 49 8B ??");
+            var netDown = FindPattern("48 8D 40 20 83 F9 20 72 95 41 8B D7");
             if (netDown .Count>=1) 
             {
                 NetworkAdress = netDown[0];
@@ -41,30 +45,53 @@ namespace CactbotSelf
             decoder.IP = NetworkAdress;
             ProcessJumpTable(codeReader, decoder, ref tableInfos);
             var mapEffectAdress = FindPattern("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 48 8B D3 48 83 C4 20 5B E9 ? ? ? ? CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC 40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 E8 ? ? ? ? 48 85 C0 74 10");
-            var ObejectAdress = FindPattern("48 89 5C 24 ? 57 48 83 EC 50 F6 42 02 02");
+			var mapEffectAdress4 = FindPattern("E8 ? ? ? ? E9 ? ? ? ? 4C 8D 46 10 8B D7 48 8D 0D ? ? ? ? E8 ? ? ? ? 48 8D 4E 10 E8 ? ? ? ? E9 ? ? ? ? 4C 8D 46 10 8B D7 48 8D 0D ? ? ? ? E8 ? ? ? ? 48 8D 4E 10 E8 ? ? ? ? E9 ? ? ? ? 48 8D 4E 10 BA 0A 00 00 00");
+			var mapEffectAdress8 = FindPattern("E8 ? ? ? ? E9 ? ? ? ? 4C 8D 46 10 8B D7 48 8D 0D ? ? ? ? E8 ? ? ? ? 48 8D 4E 10 E8 ? ? ? ? E9 ? ? ? ? 48 8D 4E 10 BA 0A 00 00 00");
+			var mapEffectAdress12 = FindPattern("E8 ? ? ? ? E9 ? ? ? ? 48 8D 4E 10 BA 0A 00 00 00");
+			var ObejectAdress = FindPattern("48 89 5C 24 ? 57 48 83 EC 50 F6 42 02 02");
             MapeffectOpcode = FindOpcode(mapEffectAdress);
-            ObjectOpcode= FindOpcode(ObejectAdress);
+			MapeffectOpcode4= FindOpcode(mapEffectAdress4,false);
+			MapeffectOpcode8 = FindOpcode(mapEffectAdress8, false);
+			MapeffectOpcode12 = FindOpcode(mapEffectAdress12, false);
+			ObjectOpcode = FindOpcode(ObejectAdress);
         }
-        public int FindOpcode(List< ulong> results)
+        public int FindOpcode(List< ulong> results,bool isNeedXef=true)
         {
             var xrefResults = new List<TableInfo>();
             foreach (var result in results)
             {
-                var xrefs = GetCrossReference(result);
-                foreach (var xref in xrefs)
-                {
-                    for (var offset = 0; offset <= 0x50; offset++)
-                    {
-                        var curAddress = xref - (ulong)offset;
-                        var info = tableInfos.Find(i => i.offset == curAddress);
-                        if (info.opcode == 0)
-                            continue;
+				if (isNeedXef)
+				{
+					var xrefs = GetCrossReference(result);
+					foreach (var xref in xrefs)
+					{
+						for (var offset = 0; offset <= 0x50; offset++)
+						{
+							var curAddress = xref - (ulong)offset;
+							var info = tableInfos.Find(i => i.offset == curAddress);
+							if (info.opcode == 0)
+								continue;
 
-                        xrefResults.Add(info);
-                        break;
-                    }
-                }
-            }
+							xrefResults.Add(info);
+							break;
+						}
+					}
+				}
+				else
+				{
+					for (var offset = 0; offset <= 0x50; offset++)
+					{
+						var curAddress = result - (ulong)offset;
+						var info = tableInfos.Find(i => i.offset == curAddress);
+						if (info.opcode == 0)
+							continue;
+
+						xrefResults.Add(info);
+						break;
+					}
+				}
+			}
+				
             if (xrefResults is not null)
             {
                 return xrefResults[0].opcode;
@@ -254,93 +281,80 @@ namespace CactbotSelf
                 lastInsturction = instr;
             }
         }
-        private void ProcessJumpTable( ByteArrayCodeReader codeReader, Decoder decoder, ref List<TableInfo> tableInfos)
-        {
-            var subs = new List<int>() { };
-            var indirectTables = new List<ulong>();
-            var jumpTables = new List<ulong>();
+		private void ProcessJumpTable(ByteArrayCodeReader codeReader, Decoder decoder, ref List<TableInfo> tableInfos)
+		{
+			var subs = new List<int>() { };
+			var indirectTables = new List<ulong>();
+			var jumpTables = new List<ulong>();
+			uint jumpAdress = 0;
+			bool isSub = false;
+			while (codeReader.CanReadByte)
+			{
+				decoder.Decode(out var instr);
 
-            while (codeReader.CanReadByte)
-            {
-                decoder.Decode(out var instr);
+				if (instr.OpCode.OpCode == 0XCC)
+					break;
 
-                if (instr.OpCode.OpCode == 0XCC)
-                    break;
+				var instrString = instr.ToString();
+				if (isSub)
+				{
+					decoder.IP = instr.MemoryDisplacement64;
+					isSub = false;
+					continue;
 
-                var instrString = instr.ToString();
+				}
+				if (instrString.StartsWith("add"))
+				{
+					isSub = true;
+					subs.Add(instr.Immediate8to32);
+					continue;
+				}
 
-                if (instrString.StartsWith("sub eax,"))
-                {
-                    var subValue = instrString.Substring(instrString.IndexOf(',') + 1).Replace("h", "");
-                    subs.Add(int.Parse(subValue, NumberStyles.HexNumber));
-                    continue;
-                }
-                if (instrString.StartsWith("add eax,"))
-                {
-                    var subValue = instrString.Substring(instrString.IndexOf(',') + 1).Replace("h", "");
-                    subs.Add(int.Parse(subValue, NumberStyles.HexNumber));
-                    continue;
-                }
-                if (instrString.StartsWith("lea eax,["))
-                {
-                    var number = instrString.Substring(instrString.LastIndexOf('-') + 1).Replace("]", "").Replace("h", "");
-                    subs.Add(int.Parse(number, NumberStyles.HexNumber));
-                    continue;
-                }
 
-                if (instrString.StartsWith("movzx eax,byte ptr [rdx+rax+"))
-                {
-                    indirectTables.Add(instr.NearBranch64);
-                    continue;
-                }
 
-                if (instrString.StartsWith("mov ecx,[") && instrString.Contains("+rax*4+"))
-                {
-                    jumpTables.Add(instr.NearBranch64);
-                }
-                if (instrString.StartsWith("mov r9d,[") && instrString.Contains("+rax*4+"))
-                {
-                    jumpTables.Add(instr.NearBranch64);
-                }
-            }
+				if (instrString.StartsWith("mov ecx,[rdx+rax*4"))
+				{
+					jumpTables.Add(instr.NearBranch64);
+				}
+			}
 
-            if (jumpTables.Count == 0)
-            {
+			if (jumpTables.Count == 0)
+			{
 
-                return;
-            }
+				return;
+			}
 
-         
 
-            var startIndex =  0;
 
-            for (var i = startIndex; i < jumpTables.Count; i++)
-            {
-                var idx =  i;
-                var minimumCaseValue = Math.Abs(subs[idx]);
-                var jumpTable = jumpTables[idx];
+			var startIndex = 0;
 
-                for (var j = minimumCaseValue; ; j++)
-                {
-                    var jumpTableIndex = j - minimumCaseValue;
-                    var tableAddress = (int)jumpTable + jumpTableIndex * 4;
-                    var tableByte1 = Marshal.ReadByte(Start + tableAddress);
-                    var tableByte2 = Marshal.ReadByte(Start + tableAddress + 1);
-                    if (tableByte1 == 0xCC && tableByte2 == 0xCC)
-                        break;
+			for (var i = startIndex; i < jumpTables.Count; i++)
+			{
+				var idx = i;
+				var minimumCaseValue = Math.Abs(subs[idx]);
+				var jumpTable = jumpTables[idx];
 
-                    var location = Marshal.ReadInt32(Start + tableAddress);
-                    tableInfos.Add(new TableInfo
-                    {
-                        opcode = j,
-                        offset = (ulong)location
-                    });
-                    // Console.WriteLine($"DirectTable#{jumpTableIndex}({j}) 0x{location:X}");
-                }
-            }
-        }
+				for (var j = minimumCaseValue; ; j++)
+				{
+					var jumpTableIndex = j - minimumCaseValue;
+					var tableAddress = (int)jumpTable + jumpTableIndex * 4;
+					var tableByte1 = Marshal.ReadByte(Start + tableAddress);
+					var tableByte2 = Marshal.ReadByte(Start + tableAddress + 1);
+					if (tableByte1 == 0xCC && tableByte2 == 0xCC)
+						break;
 
-        public byte[] ReadBytes(ulong offset, ulong size)
+					var location = Marshal.ReadInt32(Start + tableAddress);
+					tableInfos.Add(new TableInfo
+					{
+						opcode = j,
+						offset = (ulong)location
+					});
+					// Console.WriteLine($"DirectTable#{jumpTableIndex}({j}) 0x{location:X}");
+				}
+			}
+		}
+
+		public byte[] ReadBytes(ulong offset, ulong size)
         {
             var data = new byte[size];
             var STAR = (ulong)Start + offset;

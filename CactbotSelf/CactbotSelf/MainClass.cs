@@ -50,9 +50,15 @@ namespace CactbotSelf
             if (Offsets.MapeffectOpcode>0)
             {
                 MapEffect = (ushort)Offsets.MapeffectOpcode;
-                ObjectSpawn= (ushort)Offsets.ObjectOpcode;
+				MapEffect4 = (ushort)Offsets.MapeffectOpcode4;
+				MapEffect8 = (ushort)Offsets.MapeffectOpcode8;
+				MapEffect12 = (ushort)Offsets.MapeffectOpcode12;
+				ObjectSpawn = (ushort)Offsets.ObjectOpcode;
                 PluginUI.Log($"Found MapEffect opcode {MapEffect:X4}");
-                PluginUI.Log($"Found ObjectSpawn opcode {ObjectSpawn:X4}");
+				PluginUI.Log($"Found MapEffect4 opcode {MapEffect4:X4}");
+				PluginUI.Log($"Found MapEffect8 opcode {MapEffect8:X4}");
+				PluginUI.Log($"Found MapEffect12 opcode {MapEffect12:X4}");
+				PluginUI.Log($"Found ObjectSpawn opcode {ObjectSpawn:X4}");
             }
 
           
@@ -434,7 +440,11 @@ namespace CactbotSelf
         }
 
         private UInt16 MapEffect;
-        [StructLayout(LayoutKind.Explicit, Size = 0x30)]
+		private UInt16 MapEffect4;
+		private UInt16 MapEffect8;
+
+		private UInt16 MapEffect12;
+		[StructLayout(LayoutKind.Explicit, Size = 0x30)]
         public unsafe struct FFXIVIpcMapEffect
         {
             [FieldOffset(0)]
@@ -643,7 +653,13 @@ namespace CactbotSelf
                         ProcessObjectSpawn(header->ActorID, (FFXIVIpcObjectSpawn*)dataPtr, epoch);
                     if (header->MessageType == MapEffect)
                         ProcesMapEffect(header->ActorID, (FFXIVIpcMapEffect*)dataPtr, epoch);
-                    if (header->MessageType == ActorCast)
+					if (header->MessageType == MapEffect4)
+						ProcesMapEffect(header->ActorID, (FFXIVIpcMapEffect*)dataPtr, epoch);
+					if (header->MessageType == MapEffect8)
+						ProcesMapEffect(header->ActorID, (FFXIVIpcMapEffect*)dataPtr, epoch);
+					if (header->MessageType == MapEffect12)
+						ProcesMapEffect(header->ActorID, (FFXIVIpcMapEffect*)dataPtr, epoch);
+					if (header->MessageType == ActorCast)
                         ProcesActorCast(header->ActorID, (FFXIVIpcActorCast*)dataPtr);
                     if (header->MessageType == ActorSetPos)
                         ProcesActorSetPos(header->ActorID, (FFXIVIpcActorSetPos*)dataPtr);
@@ -804,7 +820,7 @@ namespace CactbotSelf
             }
             if (obj != null)
             {
-                var log = $"{actorID:X}:{obj.Name}:{dataPtr->category:X}:{dataPtr->padding:X4}:{dataPtr->param1:X8}:{dataPtr->type:X8}:{dataPtr->param3:X8}:{dataPtr->param4:X8}::{dataPtr->padding1:X8}:";
+                var log = $"{actorID:X}:{obj.Name}:{dataPtr->category:X}:{dataPtr->padding:X4}:{dataPtr->param1:X8}:{dataPtr->type:X8}:{dataPtr->param3:X8}:{dataPtr->param4:X8}::{dataPtr->padding1:X8}:{obj.PosX}:{obj.PosY}:{obj.PosZ}:{obj.Heading}:";
                 Log("106", log);
                 WriteLogLineImpl("106", log, epoch);
             }

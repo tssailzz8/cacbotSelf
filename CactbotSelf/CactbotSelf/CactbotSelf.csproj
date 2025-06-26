@@ -89,10 +89,12 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="OverlayPlugin.Common">
-      <HintPath>I:\cafeAct\Plugins\ngld\libs\OverlayPlugin.Common.dll</HintPath>
+      <HintPath>E:\Advanced Combat Tracker\Plugins\NGLD\libs\OverlayPlugin.Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="OverlayPlugin.Core">
-      <HintPath>I:\cafeAct\Plugins\ngld\libs\OverlayPlugin.Core.dll</HintPath>
+      <HintPath>E:\Advanced Combat Tracker\Plugins\NGLD\libs\OverlayPlugin.Core.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
